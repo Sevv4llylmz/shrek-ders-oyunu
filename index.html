@@ -102,7 +102,11 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
 .pen{background:repeating-linear-gradient(90deg,#4caf50 0 8%,#43a047 8% 16%)}
 .goal{position:relative;width:54vw;height:38vh;border:14px solid #fff;border-bottom:none;border-radius:6px 6px 0 0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 2px,transparent 2px 22px),repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 2px,transparent 2px 22px),rgba(0,0,0,.08)}
 .keeper{position:absolute;bottom:-2vh;left:50%;height:32vh;object-fit:contain;object-position:bottom;transform:translateX(-50%);transition:transform .45s cubic-bezier(.3,.1,.3,1)}
-.goaltxt.glove{top:6%;font-size:70px;-webkit-text-stroke:0}
+.goaltxt.glove{font-size:80px;-webkit-text-stroke:0}
+/* "what's missing": the 4 foods with the gap on one row, the 4 choices on a separate row below */
+#mrow,#mchoices{flex-wrap:nowrap;gap:1.5vw}
+#mchoices{margin-top:1vh}
+.msep{font-size:44px;line-height:1;margin:1vh 0;border-top:4px dashed rgba(255,255,255,.85);width:70vw;padding-top:1vh;text-align:center}
 .pball{font-size:100px;transition:transform .55s cubic-bezier(.2,.6,.3,1)}
 .shooter{position:absolute;bottom:2vh;height:36vh;filter:drop-shadow(0 8px 6px rgba(0,0,0,.3))}
 .goaltxt{position:absolute;font:900 140px "Comic Sans MS",system-ui,sans-serif;color:#ffd400;-webkit-text-stroke:6px #0b1f4d;animation:popin .5s both;z-index:3}
@@ -147,8 +151,12 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
   #q{gap:2.2vh;padding-left:3vw;padding-right:3vw;padding-bottom:3vh;justify-content:center}
   .opt .group{max-width:100%;gap:2px}
   /* "what's missing": 4 food cards above, 4 choices below, all smaller */
-  #mrow .opt,#mchoices .opt{width:38vw;height:12vh !important}
+  #mrow .opt,#mchoices .opt{width:21vw;height:11vh;padding:.6vh;border-width:4px;border-radius:16px}
   #mrow,#mchoices{gap:2vw}
+  .msep{font-size:32px;width:86vw}
+  /* the bubble always keeps room for two lines, so pictures do not jump when the text gets shorter */
+  #bubble{min-height:86px}
+  .st{height:min(15vh,170px)}
   /* match: score at the very top, question bubble just below it */
   #stage.field #score{top:8px;bottom:auto;left:50%;right:auto;transform:translateX(-50%)}
   #stage.field #bubble,#stage.field #replay{top:62px}
@@ -201,7 +209,7 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
 }
 /* phones in landscape: little height, so everything gets shorter */
 @media (max-height:520px){
-  #bubble{font-size:18px;padding:5px 12px;top:8px}
+  #bubble{font-size:18px;padding:5px 12px;top:8px;min-height:0}
   #replay{width:48px;height:48px;font-size:22px;top:8px}
   #nextBtn{width:62px;height:62px;font-size:28px}
   #map{padding:52px 0 6px;gap:2.5vh}
@@ -641,6 +649,8 @@ function resolveMatch(emirScores) {
       match[who]++;
       const p = $(emirScores ? "ptE" : "ptS"); p.textContent = match[who]; p.classList.remove("bump"); void p.offsetWidth; p.classList.add("bump");
       const g = document.createElement("div"); g.className = "goaltxt";
+      // GOAL! sits on the upper part of the net, above the keeper
+      const gl = o.querySelector(".goal"); g.style.cssText = `top:${gl.offsetTop + 6}px;left:0;right:0;text-align:center`;
       if (emirScores) {
         g.textContent = "GOAL!";
         // the annoyed picture gets exactly the box the keeper picture had, so both look the same size
@@ -649,6 +659,7 @@ function resolveMatch(emirScores) {
         sfx.cheer(); confetti(70); say([PH.goalEmir, q().model]);
       } else {
         g.className = "goaltxt glove"; g.innerHTML = `<span class="emo">🧤</span>`;
+        g.style.top = gl.offsetTop + gl.offsetHeight + innerHeight * .035 + "px";   // the free grass just below the goal
         sfx.aww(); sadFaces(); say([PH.saveShrek, PH.look, q().model]);
       }
       o.appendChild(g);
@@ -717,7 +728,7 @@ function hideOne(Q) {
   setTimeout(() => {
     c.remove();
     $("mrow").innerHTML = Q.opts.map(([id, v]) => id === gone ? `<div class="opt blank"><span class="emo" style="font-size:12vh">❓</span></div>` : `<div class="opt" style="cursor:default">${V(v)}</div>`).join("");
-    $("closeEyes").outerHTML = `<div class="row" id="mchoices">${shuffle(Q.opts).map(([id, v]) => `<div class="opt" data-id="${id}" style="height:18vh">${V(v)}</div>`).join("")}</div>`;
+    $("closeEyes").outerHTML = `<div class="msep emo">👇</div><div class="row" id="mchoices">${shuffle(Q.opts).map(([id, v]) => `<div class="opt" data-id="${id}">${V(v)}</div>`).join("")}</div>`;
     document.querySelectorAll("#mchoices .opt").forEach(o => o.onclick = () => choose(o, o.dataset.id === gone));
     const i = document.querySelector("#bar .info"); if (i) i.innerHTML += ` · Cevap: <b>${gone}</b>`;
     say(Q.say2);
@@ -777,7 +788,9 @@ document.addEventListener("keydown", e => {
 /* the question area always starts below the speech bubble, so a long question never covers the activity */
 function fitBubble() {
   const b = $("bubble"), q = $("q");
-  q.style.paddingTop = (b.textContent ? b.offsetTop + b.offsetHeight + 12 : 20) + "px";
+  const pad = (b.textContent ? b.offsetTop + b.offsetHeight + 12 : 20) + "px";
+  q.style.paddingTop = pad;
+  $("map").style.paddingTop = b.textContent ? pad : "";   // map cards start below the greeting too
   fitContent();
 }
 /* on any screen size: if the activity is taller than the space between bubble and buttons, shrink it to fit */
