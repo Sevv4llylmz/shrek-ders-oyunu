@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Shrek's Big Day</title>
 <!-- Private lesson tool: shows the teacher's own pictures from ders_gorselleri/ and the narrator clips in ders_sesleri.js. Do not publish. -->
 <script src="ders_sesleri.js"></script>
@@ -10,7 +10,8 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hidden;user-select:none;color:#2d2a4a;background:#7cbf55}
-#app{display:flex;flex-direction:column;height:100vh}
+/* 100dvh = the part of the screen the browser really shows (iPhone Safari's toolbar is not counted) */
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh}
 #stage{flex:1;position:relative;overflow:hidden;background:#5b7a3a}
 /* swamp picture behind everything, softened a little so the cards and characters stand out */
 #stage::before{content:"";position:absolute;inset:-12px;background:url("ders_gorselleri/arka_plan_bataklik.webp") center/cover no-repeat;filter:blur(2px) brightness(1.08) saturate(1.1)}
@@ -29,7 +30,7 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
 #bubble{border:4px solid #fff;transition:border-color .2s}
 #bubble.talk{border-color:#ff9800}
 #replay{position:absolute;top:14px;left:16px;z-index:12;width:74px;height:74px;border-radius:50%;border:5px solid #fff;background:#ff9800;font-size:36px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.2)}
-#nextBtn{position:absolute;right:22px;bottom:18px;z-index:12;width:100px;height:100px;border-radius:50%;border:6px solid #fff;background:#7c4dff;font-size:50px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.2);animation:pulse 1.2s infinite}
+#nextBtn{position:absolute;right:22px;bottom:18px;z-index:45;width:100px;height:100px;border-radius:50%;border:6px solid #fff;background:#7c4dff;font-size:50px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.2);animation:pulse 1.2s infinite}
 
 /* scoreboard (match only) */
 #score{position:absolute;top:12px;right:14px;z-index:40;display:flex;align-items:center;gap:10px;background:#0b1f4d;border:4px solid #ffd400;border-radius:16px;padding:4px 14px;box-shadow:0 5px 0 rgba(0,0,0,.25)}
@@ -100,7 +101,8 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
 .overlay{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2vh;animation:fadein .25s}
 .pen{background:repeating-linear-gradient(90deg,#4caf50 0 8%,#43a047 8% 16%)}
 .goal{position:relative;width:54vw;height:38vh;border:14px solid #fff;border-bottom:none;border-radius:6px 6px 0 0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 2px,transparent 2px 22px),repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 2px,transparent 2px 22px),rgba(0,0,0,.08)}
-.keeper{position:absolute;bottom:-2vh;left:50%;height:32vh;transform:translateX(-50%);transition:transform .45s cubic-bezier(.3,.1,.3,1)}
+.keeper{position:absolute;bottom:-2vh;left:50%;height:32vh;object-fit:contain;object-position:bottom;transform:translateX(-50%);transition:transform .45s cubic-bezier(.3,.1,.3,1)}
+.goaltxt.glove{top:6%;font-size:70px;-webkit-text-stroke:0}
 .pball{font-size:100px;transition:transform .55s cubic-bezier(.2,.6,.3,1)}
 .shooter{position:absolute;bottom:2vh;height:36vh;filter:drop-shadow(0 8px 6px rgba(0,0,0,.3))}
 .goaltxt{position:absolute;font:900 140px "Comic Sans MS",system-ui,sans-serif;color:#ffd400;-webkit-text-stroke:6px #0b1f4d;animation:popin .5s both;z-index:3}
@@ -114,7 +116,7 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
 .big .emo{font-size:260px;animation:popin .6s both}
 
 /* teacher bar */
-#bar{background:#1f2937;color:#e5e7eb;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;font:14px "Segoe UI",system-ui,sans-serif;min-height:52px}
+#bar{background:#1f2937;color:#e5e7eb;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px calc(6px + env(safe-area-inset-bottom));font:14px "Segoe UI",system-ui,sans-serif;min-height:52px}
 #bar .info{flex:1;min-width:260px;line-height:1.3}
 #bar .info b{color:#fde68a}
 #bar .lbl{color:#9ca3af;font-size:12px}
@@ -141,7 +143,18 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
   .st .num{width:38px;height:38px;font-size:19px;top:-12px;left:-12px}
   .st .star{font-size:40px}
   .bigbtn{font-size:22px;padding:10px 26px}
-  #q{gap:2.2vh;padding-left:3vw;padding-right:3vw;justify-content:flex-start}
+  /* question bubble stays on top; cards and pictures sit in the middle of the space below it */
+  #q{gap:2.2vh;padding-left:3vw;padding-right:3vw;padding-bottom:3vh;justify-content:center}
+  .opt .group{max-width:100%;gap:2px}
+  /* "what's missing": 4 food cards above, 4 choices below, all smaller */
+  #mrow .opt,#mchoices .opt{width:38vw;height:12vh !important}
+  #mrow,#mchoices{gap:2vw}
+  /* match: score at the very top, question bubble just below it */
+  #stage.field #score{top:8px;bottom:auto;left:50%;right:auto;transform:translateX(-50%)}
+  #stage.field #bubble,#stage.field #replay{top:62px}
+  #stage.field .vis{height:20vh}
+  #stage.field .opt{height:15vh}
+  #stage.field .thumb{width:90px;height:90px;font-size:50px}
   .row{gap:3vw}
   .opt{min-width:0;width:42vw;height:19vh;border-radius:22px;padding:1vh}
   .opt img{max-width:100%}
@@ -157,7 +170,7 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
   .feedrow{flex-direction:column;gap:1.5vh}
   .feedrow .vis{height:22vh}
   .feedrow .row .opt{width:42vw;height:15vh}
-  .group img{height:5vh}
+  .group img{height:4.6vh}
   .goal{width:88vw;height:30vh;border-width:9px}
   .keeper{height:24vh}
   .shooter{height:20vh}
@@ -170,9 +183,21 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
   #score{top:auto;bottom:12px;right:auto;left:12px;padding:3px 10px;gap:6px}
   #score .team{font-size:13px}
   #score .pts{font-size:28px;min-width:22px}
-  #bar{gap:4px;padding:5px 6px;font-size:12px}
-  #bar .info{min-width:100%}
-  .tb{padding:6px 8px;font-size:12px}
+  /* teacher buttons: big 3x2 grid, lifted above the floating browser toolbar on phones */
+  #bar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px 8px calc(78px + env(safe-area-inset-bottom));font-size:12px}
+  #bar .info{grid-column:1/-1;min-width:0}
+  .tb{padding:11px 4px;font-size:14px;border-radius:10px}
+  .tb.fsbtn{display:none}
+}
+/* shorter upright phones (e.g. iPhone Safari with its toolbars): a picture + choices must still fit below the bubble */
+@media (max-width:900px) and (orientation:portrait) and (max-height:760px){
+  .vis{height:24vh}
+  .reveal{height:25vh}
+  .opt{height:16vh}
+  .feedrow .vis{height:19vh}
+  .feedrow .row .opt{height:13vh}
+  .thumb{width:96px;height:96px;font-size:54px}
+  #q{gap:1.6vh}
 }
 /* phones in landscape: little height, so everything gets shorter */
 @media (max-height:520px){
@@ -194,6 +219,14 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
   .reveal{height:38vh}
   .thumb{width:90px;height:90px;font-size:50px}
   #bar .info{min-width:200px}
+  #bar{grid-template-columns:repeat(6,1fr);padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+  .tb{padding:7px 4px;font-size:12px}
+  /* landscape match: score top-right next to the bubble instead of above it */
+  #stage.field #score{top:8px;left:auto;right:10px;transform:none}
+  #stage.field #bubble,#stage.field #replay{top:8px}
+  #stage.field #bubble{right:200px}
+  #stage.field .vis{height:30vh}
+  #stage.field .opt{height:26vh}
 }
 
 @keyframes drift{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
@@ -384,7 +417,33 @@ const sfx = {
   whoosh: () => { for (let i = 0; i < 6; i++) tone(300 + i * 90, i * .04, .08, "triangle", .05); },
   cheer: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * .1, .35, "triangle")),
   whistle: () => { tone(2200, 0, .25, "sine", .07); tone(2200, .32, .6, "sine", .07); },
+  // a soft crowd "aww": many voices sliding gently down, filtered so it sounds round, not scary
+  aww: () => {
+    try {
+      const c = ctx(), t = c.currentTime, out = c.createGain(), vowel = c.createBiquadFilter(), soft = c.createBiquadFilter();
+      vowel.type = "bandpass"; vowel.frequency.value = 750; vowel.Q.value = 1.2;
+      soft.type = "lowpass"; soft.frequency.value = 1500;
+      out.gain.setValueAtTime(.0001, t); out.gain.exponentialRampToValueAtTime(.5, t + .12); out.gain.exponentialRampToValueAtTime(.0001, t + 1.4);
+      vowel.connect(soft); soft.connect(out); out.connect(c.destination);
+      for (let i = 0; i < 9; i++) {   // nine "voices", each a little different
+        const o = c.createOscillator(), g = c.createGain(), f = 280 * Math.pow(2, (Math.random() * 7) / 12), start = t + Math.random() * .08;
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(f * 1.15, start); o.frequency.exponentialRampToValueAtTime(f * .72, start + 1.25);
+        o.detune.value = (Math.random() - .5) * 30;
+        g.gain.value = .06;
+        o.connect(g); g.connect(vowel); o.start(start); o.stop(t + 1.45);
+      }
+    } catch (e) {}
+  },
 };
+function sadFaces() {   // a few "oh no" faces float up after a save
+  ["😮", "😯", "😮"].forEach((e, i) => setTimeout(() => {
+    const r = document.createElement("div");
+    r.className = "react emo"; r.textContent = e;
+    r.style.left = 18 + i * 28 + Math.random() * 8 + "vw"; r.style.top = 55 + Math.random() * 10 + "vh"; r.style.fontSize = "70px";
+    document.body.appendChild(r); setTimeout(() => r.remove(), 1700);
+  }, i * 180));
+}
 function confetti(n = 60) {
   const cs = ["#ffd400", "#0b1f4d", "#43a047", "#e53935", "#1e88e5", "#fb8c00"];
   for (let i = 0; i < n; i++) {
@@ -482,6 +541,7 @@ function renderQ(withIntro) {
     [tb("✓ Doğru (1)", () => teacherMark("ok"), "ok"), tb("~ Yardımla (2)", () => teacherMark("help"), "help"), tb("✗ Bilmedi (3)", () => teacherMark("no"), "no"),
      tb("💡 İpucu", hint), tb("⏭ Geç", nextQ), tb("🗺️", () => showMap())]);
   say(withIntro && cur.qi === 0 ? [s.intro, Q.say] : Q.say);
+  requestAnimationFrame(() => requestAnimationFrame(fitContent));   // once the new cards have their final layout
 }
 const typeTr = t => ({tap: "Dinle & dokun", feel: "Duygu", count: "Sayma", speak: "Konuşma 🎤", tf: "Doğru mu? 👍👎", learn: "Yeni kelimeler",
   feed: "Besle", missing: "Hangisi eksik?", odd: "Hangisi farklı?", memory: "Hafıza", reveal: "Kutuları aç"})[t];
@@ -568,9 +628,12 @@ function resolveMatch(emirScores) {
       if (emirScores) {
         $("pball").style.transform = `translate(${x}vw, ${y}vh) scale(.55)`;
         $("pkeeper").style.transform = `translateX(calc(-50% + ${-Math.sign(x) * 15}vw)) rotate(${-Math.sign(x) * 25}deg)`;
-      } else {   // Shrek dives to the ball and the ball stops in his hands
-        $("pkeeper").style.transform = `translateX(calc(-50% + ${x * .7}vw)) rotate(${Math.sign(x) * 15}deg)`;
-        $("pball").style.transform = `translate(${x * .7}vw, -30vh) scale(.5)`;
+      } else {   // Shrek dives to the ball and the ball stops in his raised hands
+        const kr = $("pkeeper").getBoundingClientRect(), br = $("pball").getBoundingClientRect();
+        const shift = x * .7 * innerWidth / 100;
+        const dx = kr.left + kr.width / 2 + shift - (br.left + br.width / 2), dy = kr.top + kr.height * .2 - (br.top + br.height / 2);
+        $("pkeeper").style.transform = `translateX(calc(-50% + ${x * .7}vw)) rotate(${Math.sign(x) * 8}deg)`;
+        $("pball").style.transform = `translate(${dx}px, ${dy}px) scale(.5)`;
       }
     }, 400);
     setTimeout(() => {
@@ -580,11 +643,13 @@ function resolveMatch(emirScores) {
       const g = document.createElement("div"); g.className = "goaltxt";
       if (emirScores) {
         g.textContent = "GOAL!";
-        $("pkeeper").src = IMG("shrek_10_cani_sikkin");
+        // the annoyed picture gets exactly the box the keeper picture had, so both look the same size
+        const k = $("pkeeper"); k.style.width = k.offsetWidth + "px"; k.style.height = k.offsetHeight + "px";
+        k.src = IMG("shrek_10_cani_sikkin");
         sfx.cheer(); confetti(70); say([PH.goalEmir, q().model]);
       } else {
-        g.innerHTML = `<span class="emo">🧤</span>`;
-        sfx.yuck(); say([PH.saveShrek, PH.look, q().model]);
+        g.className = "goaltxt glove"; g.innerHTML = `<span class="emo">🧤</span>`;
+        sfx.aww(); sadFaces(); say([PH.saveShrek, PH.look, q().model]);
       }
       o.appendChild(g);
       $("nextBtn").classList.remove("hidden");
@@ -681,7 +746,7 @@ function memory() {
 function tb(label, fn, cls) { const b = document.createElement("button"); b.className = "tb" + (cls ? " " + cls : ""); b.textContent = label; b.onclick = fn; return b; }
 function bar(info, buttons) {
   const b = $("bar"); b.innerHTML = info;
-  [...buttons, tb("⛶", () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}))].forEach(x => b.appendChild(x));
+  [...buttons, tb("⛶", () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}), "fsbtn")].forEach(x => b.appendChild(x));
 }
 const MARK = {ok: "✅ Kendisi", help: "🟡 Yardımla", no: "❌ Bilmedi"};
 function showNotes() {
@@ -713,8 +778,22 @@ document.addEventListener("keydown", e => {
 function fitBubble() {
   const b = $("bubble"), q = $("q");
   q.style.paddingTop = (b.textContent ? b.offsetTop + b.offsetHeight + 12 : 20) + "px";
+  fitContent();
+}
+/* on any screen size: if the activity is taller than the space between bubble and buttons, shrink it to fit */
+function fitContent() {
+  const q = $("q"), kids = [...q.children];
+  if (q.classList.contains("hidden") || !kids.length) return;
+  kids.forEach(c => c.style.zoom = "");
+  const cs = getComputedStyle(q), gap = parseFloat(cs.rowGap) || 0;
+  const avail = q.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const need = kids.reduce((s, c) => s + c.offsetHeight, 0) + gap * (kids.length - 1);
+  if (need > avail) kids.forEach(c => c.style.zoom = Math.max(.45, avail / need));
 }
 window.addEventListener("resize", fitBubble);
+// re-fit whenever the question area or the button bar changes size, and when pictures finish loading
+if (window.ResizeObserver) { const ro = new ResizeObserver(() => fitContent()); ro.observe($("q")); ro.observe($("bar")); }
+document.addEventListener("load", e => { if (e.target.tagName === "IMG" && e.target.closest("#q")) fitContent(); }, true);
 
 showMap();
 if (!window.SHREK_AUDIO) $("bubble").textContent = "⚠️ ders_sesleri.js bulunamadı – ses kapalı";
