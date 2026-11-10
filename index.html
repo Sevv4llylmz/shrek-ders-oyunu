@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shrek's Big Day</title>
+<!-- Private lesson tool: shows the teacher's own pictures from ders_gorselleri/ and the narrator clips in ders_sesleri.js. Do not publish. -->
+<script src="ders_sesleri.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hidden;user-select:none;color:#2d2a4a;background:#7cbf55}
+#app{display:flex;flex-direction:column;height:100vh}
+#stage{flex:1;position:relative;overflow:hidden;background:#5b7a3a}
+/* swamp picture behind everything, softened a little so the cards and characters stand out */
+#stage::before{content:"";position:absolute;inset:-12px;background:url("ders_gorselleri/arka_plan_bataklik.webp") center/cover no-repeat;filter:blur(2px) brightness(1.08) saturate(1.1)}
+#stage.field{background:repeating-linear-gradient(90deg,#4caf50 0 8%,#43a047 8% 16%)}
+#stage.field::before{display:none}
+.emo{font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;line-height:1;display:inline-block}
+.hidden{display:none!important}
+
+/* speech bubble: the question as text, read aloud by the narrator */
+#bubble{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:12;background:#fff;border-radius:24px;padding:10px 22px;font-size:30px;font-weight:700;box-shadow:0 5px 12px rgba(0,0,0,.15);max-width:70vw;text-align:center;display:flex;align-items:center;gap:12px}
+#bubble:empty{display:none}
+#bubble{border:4px solid #fff;transition:border-color .2s}
+#bubble.talk{border-color:#ff9800}
+#replay{position:absolute;top:14px;left:16px;z-index:12;width:74px;height:74px;border-radius:50%;border:5px solid #fff;background:#ff9800;font-size:36px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.2)}
+#nextBtn{position:absolute;right:22px;bottom:18px;z-index:12;width:100px;height:100px;border-radius:50%;border:6px solid #fff;background:#7c4dff;font-size:50px;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.2);animation:pulse 1.2s infinite}
+
+/* scoreboard (match only) */
+#score{position:absolute;top:12px;right:14px;z-index:40;display:flex;align-items:center;gap:10px;background:#0b1f4d;border:4px solid #ffd400;border-radius:16px;padding:4px 14px;box-shadow:0 5px 0 rgba(0,0,0,.25)}
+#score .team{font:800 18px "Segoe UI",system-ui,sans-serif;color:#ffd400}
+#score .pts{font:900 38px "Segoe UI",system-ui,sans-serif;color:#fff;min-width:30px;text-align:center}
+#score .pts.bump{animation:popin .5s}
+
+/* map */
+#map{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5vh;padding:70px 0 12px}
+.stations{display:grid;grid-template-columns:repeat(3,1fr);gap:5vh 3vw}
+.st{position:relative;width:22vw;max-width:280px;height:min(24vh,220px);border-radius:28px;border:6px solid #fff;background:var(--c);cursor:pointer;box-shadow:0 8px 0 rgba(0,0,0,.18);display:flex;align-items:flex-end;justify-content:center;animation:popin .4s both;transition:transform .15s}
+.st:hover{transform:scale(1.05) rotate(-1deg)}
+/* every card picture sits in the same centred box, above the name label */
+.st .pic{position:absolute;inset:9% 9% 22% 9%;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.st .pic img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 6px 6px rgba(0,0,0,.3))}
+.st .pic .emo{font-size:min(14vh,130px);filter:drop-shadow(0 6px 6px rgba(0,0,0,.3))}
+.st .nm{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:#fff;border-radius:14px;padding:3px 14px;font-weight:700;font-size:20px;white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.st .num{position:absolute;top:-14px;left:-14px;width:48px;height:48px;border-radius:50%;background:#1e3a8a;color:#fff;border:4px solid #fff;font:800 24px "Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center}
+.st .star{position:absolute;top:-20px;right:-16px;font-size:56px;animation:popin .5s both}
+.bigbtn{border:none;border-radius:40px;padding:12px 34px;font:700 30px "Comic Sans MS",system-ui,sans-serif;background:#ff7043;color:#fff;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.2)}
+.bigbtn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+
+/* question area */
+#q{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;padding:100px 3vw 2vh}
+.row{display:flex;gap:2.5vw;align-items:flex-end;justify-content:center;flex-wrap:wrap}
+.opt{background:#fffdf0;border:6px solid #fff;border-radius:28px;min-width:15vw;height:28vh;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.15);transition:transform .15s,opacity .3s;animation:popin .4s both;padding:1vh 1vw;position:relative}
+.opt:hover{transform:translateY(-6px) scale(1.04)}
+.opt img{height:100%;max-width:20vw;object-fit:contain}
+.opt .emo{font-size:14vh}
+.opt.right{background:#d7f8d4;box-shadow:0 0 0 8px #43a047}
+.opt.wrong{animation:shake .45s;opacity:.4}
+.opt.show{box-shadow:0 0 0 8px #fdd835;animation:pulse 1s infinite}
+.opt.blank{background:rgba(255,255,255,.35);border-style:dashed;cursor:default}
+.group{display:flex;flex-wrap:wrap;gap:4px;max-width:14vw;justify-content:center}
+.group img{height:7vh}
+.vis{height:42vh;display:flex;align-items:flex-end;justify-content:center}
+.vis img{height:100%;object-fit:contain;filter:drop-shadow(0 10px 8px rgba(0,0,0,.25))}
+.vis .emo{font-size:28vh}
+.cue{font-size:60px}
+.mic{animation:pulse 1s infinite}
+.thumbs{display:flex;gap:5vw}
+.thumb{font-size:100px;width:170px;height:170px;border-radius:50%;border:6px solid #fff;cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.18)}
+.thumb.up{background:#a5d6a7}.thumb.down{background:#ef9a9a}
+.thumb.right{box-shadow:0 0 0 8px #43a047}.thumb.wrong{opacity:.4;animation:shake .45s}.thumb.show{box-shadow:0 0 0 8px #fdd835;animation:pulse 1s infinite}
+.reveal{position:relative;height:44vh;display:inline-block}
+.reveal img{height:100%;display:block}
+.tiles{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.tile{background:#8e24aa;border:3px solid #fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff;transition:opacity .4s,transform .4s}
+.tile:nth-child(odd){background:#fb8c00}
+.tile.off{opacity:0;transform:scale(.3);pointer-events:none}
+.mem{display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 2vw}
+.card{width:14vw;max-width:170px;height:22vh;perspective:600px;cursor:pointer}
+.card .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.card.flip .in{transform:rotateY(180deg)}
+.card .f,.card .b{position:absolute;inset:0;border-radius:20px;border:5px solid #fff;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;box-shadow:0 6px 0 rgba(0,0,0,.15)}
+.card .f{background:#43a047;font-size:70px;color:#fff}
+.card .b{background:#fffdf0;transform:rotateY(180deg)}
+.card .b .emo{font-size:12vh}
+.card .b img{max-width:85%;max-height:85%;object-fit:contain}
+.card.done .b{background:#d7f8d4}
+.flyer img{height:100%}
+.flyer{position:fixed;z-index:50;pointer-events:none;transition:transform .8s cubic-bezier(.3,.1,.3,1),opacity .3s .7s}
+.react{position:fixed;font-size:110px;animation:floatup 1.6s forwards;pointer-events:none;z-index:40}
+.curtain{position:absolute;inset:0;z-index:15;background:#3949ab;display:flex;align-items:center;justify-content:center;animation:fadein .3s}
+.curtain .emo{font-size:200px;animation:pulse 1s infinite}
+
+/* match */
+.overlay{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2vh;animation:fadein .25s}
+.pen{background:repeating-linear-gradient(90deg,#4caf50 0 8%,#43a047 8% 16%)}
+.goal{position:relative;width:54vw;height:38vh;border:14px solid #fff;border-bottom:none;border-radius:6px 6px 0 0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.35) 0 2px,transparent 2px 22px),repeating-linear-gradient(90deg,rgba(255,255,255,.35) 0 2px,transparent 2px 22px),rgba(0,0,0,.08)}
+.keeper{position:absolute;bottom:-2vh;left:50%;height:32vh;transform:translateX(-50%);transition:transform .45s cubic-bezier(.3,.1,.3,1)}
+.pball{font-size:100px;transition:transform .55s cubic-bezier(.2,.6,.3,1)}
+.shooter{position:absolute;bottom:2vh;height:36vh;filter:drop-shadow(0 8px 6px rgba(0,0,0,.3))}
+.goaltxt{position:absolute;font:900 140px "Comic Sans MS",system-ui,sans-serif;color:#ffd400;-webkit-text-stroke:6px #0b1f4d;animation:popin .5s both;z-index:3}
+.wheelwrap{position:relative;width:62vh;height:62vh}
+.wheel{width:100%;height:100%;border-radius:50%;border:10px solid #fff;box-shadow:0 10px 0 rgba(0,0,0,.2);position:relative;transition:transform 3.2s cubic-bezier(.15,.7,.2,1)}
+.wheel .seg{position:absolute;left:50%;top:50%;width:0;height:0}
+.wheel .seg span{position:absolute;transform:translate(-50%,-50%);font-size:9vh}
+.wheel .seg img{position:absolute;height:13vh;transform:translate(-50%,-50%)}
+.pointer{position:absolute;top:-4vh;left:50%;transform:translateX(-50%);font-size:9vh;z-index:2}
+.big{position:absolute;inset:0;z-index:35;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25)}
+.big .emo{font-size:260px;animation:popin .6s both}
+
+/* teacher bar */
+#bar{background:#1f2937;color:#e5e7eb;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px;font:14px "Segoe UI",system-ui,sans-serif;min-height:52px}
+#bar .info{flex:1;min-width:260px;line-height:1.3}
+#bar .info b{color:#fde68a}
+#bar .lbl{color:#9ca3af;font-size:12px}
+.tb{background:#374151;color:#fff;border:none;border-radius:8px;padding:7px 11px;font:600 14px "Segoe UI",system-ui,sans-serif;cursor:pointer}
+.tb:hover{filter:brightness(1.2)}
+.tb.ok{background:#16a34a}.tb.help{background:#ca8a04}.tb.no{background:#dc2626}.tb.on{background:#2563eb}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:70;display:flex;align-items:center;justify-content:center;font-family:"Segoe UI",system-ui,sans-serif}
+.modal .card2{background:#fff;border-radius:14px;padding:18px 22px;width:min(720px,94vw);max-height:88vh;overflow:auto;user-select:text}
+.modal table{width:100%;border-collapse:collapse;font-size:14px}
+.modal td{padding:4px 6px;border-bottom:1px solid #eee}
+.modal textarea{width:100%;min-height:150px;font:14px "Segoe UI",system-ui,sans-serif;margin-top:8px}
+.confetti{position:fixed;top:-20px;width:14px;height:20px;z-index:80;pointer-events:none;animation:fall linear forwards}
+
+@keyframes drift{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
+@keyframes popin{from{transform:scale(0);opacity:0}70%{transform:scale(1.12)}to{transform:scale(1);opacity:1}}
+@keyframes pulse{50%{transform:scale(1.06)}}
+@keyframes shake{20%,60%{transform:translateX(-12px)}40%,80%{transform:translateX(12px)}}
+@keyframes floatup{0%{opacity:0;transform:scale(.5)}20%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:translateY(-200px)}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@keyframes fadein{from{opacity:0}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <div id="bubble"></div>
+    <button id="replay" class="emo hidden" title="Tekrar dinle">🔊</button>
+    <div id="score" class="hidden"><span class="team">EMİR</span><span class="pts" id="ptE">0</span><span class="team">–</span><span class="pts" id="ptS">0</span><span class="team" style="color:#b6e36b">SHREK</span></div>
+    <div id="map"></div>
+    <div id="q" class="hidden"></div>
+    <button id="nextBtn" class="emo hidden" title="Sonraki">➡️</button>
+  </div>
+  <div id="bar"></div>
+</div>
+
+<script>
+/* ---------- assets: the teacher's own pictures + emoji objects ---------- */
+const NAME = "Emir";
+const IMG = n => `ders_gorselleri/${n}.png`;
+const C = {shrek: "img:shrek_02_ozguvenli", fiona: "img:fiona", donkey: "img:esek_1_gulumsuyor", puss: "img:kedi_selam"};
+// food: the teacher's photos; objects and faces: Microsoft Fluent Emoji 3D (MIT licence). Swap a file to change a picture.
+const F = {pasta: "img:yiyecek_pasta", salad: "img:yiyecek_salad", rice: "img:yiyecek_rice", cake: "img:yiyecek_cake",
+  soup: "img:yiyecek_soup", water: "img:yiyecek_water", icecream: "img:yiyecek_icecream", socks: "img:nesne_socks", onion: "img:nesne_onion"};
+const FOODS = ["pasta", "salad", "rice", "cake", "soup", "water", "icecream"];
+const someFoods = (n, must) => shuffle([...(must ? [must] : []), ...shuffle(FOODS.filter(f => f !== must)).slice(0, n - (must ? 1 : 0))]);
+const FACE = {happy: "img:yuz_happy", angry: "img:yuz_angry", sad: "img:yuz_sad"};
+const V = v => v.startsWith("img:") ? `<img src="${IMG(v.slice(4))}" alt="">` : `<span class="emo">${v}</span>`;
+const pick = (map, ids) => ids.map(id => [id, map[id]]);
+const group = (e, n) => `grp|${e}|${n}`;
+
+/* ---------- spoken lines (tools/build_shrek_audio.py records every say/model/fix/intro/say2 string and PH) ---------- */
+const PH = {
+  praise: ["Great job!", "Well done, {name}!", "Super!", "Yes! Excellent!"],
+  oops: "Oops! Try again!",
+  look: "Look! This one!",
+  yuck: "Yuck! Try again!",
+  sayIt: "Say it with me!",
+  goalEmir: "Goal! {name} scores!",
+  saveShrek: "Oh no! Shrek catches the ball!",
+  win: "{name} wins! You are a superstar!",
+  lose: "Shrek wins this time! Let's play again!",
+  draw: "It's a draw! Great game!",
+  star: "Hooray! You got a star!",
+  pickIsland: "Hello, {name}! Where shall we go?",
+  spin: "Say stop!",
+  words: {pasta: "Pasta!", salad: "Salad!", rice: "Rice!", cake: "Cake!", soup: "Soup!", water: "Water!", icecream: "Ice cream!"},
+};
+
+/* ---------- question bank: Super Safari 1 Unit 7 (Food) + review ----------
+   t: tap | feel | count | speak | tf | learn | feed | missing | odd | memory | reveal
+   say: the narrator's question; model: said after a right answer */
+const STATIONS = [
+  {id: "morning", name: "Good morning!", color: "#ffb74d", icon: "img:shrek_00_uzanmis", intro: "Good morning! Shrek is waking up!", qs: [
+    {t: "speak", label: "How are you?", say: "Good morning, {name}! How are you?", model: "I'm fine, thank you!", ans: "I'm fine / I'm happy!", v: "img:shrek_01_selam"},
+    {t: "feel", label: "angry", say: "Look at Shrek. How does Shrek feel?", model: "Shrek is angry! Grrr!", ans: "angry", v: "img:shrek_03_kizgin", opts: pick(FACE, ["happy", "angry", "sad"])},
+    {t: "feel", label: "happy", say: "And now? How does Shrek feel?", model: "Shrek is happy!", ans: "happy", v: "img:shrek_04_cok_mutlu", opts: pick(FACE, ["sad", "happy", "angry"])},
+    {t: "feel", label: "sad", say: "Oh no! How does Shrek feel?", model: "Shrek is sad. He is hungry!", ans: "sad", v: "img:shrek_05_uzgun_ac", opts: pick(FACE, ["happy", "angry", "sad"])},
+  ]},
+  {id: "friends", name: "Shrek's friends", color: "#9575cd", icon: "img:hepsi_bir_arada", intro: "Let's meet Shrek's friends!", qs: [
+    {t: "tap", label: "Where's Donkey?", say: "Where's Donkey? Touch Donkey!", model: "Yes! This is Donkey!", ans: "donkey", opts: pick(C, ["shrek", "donkey", "fiona", "puss"])},
+    {t: "tap", label: "Where's Fiona?", say: "Where's Fiona?", model: "Yes! This is Fiona!", ans: "fiona", opts: pick(C, ["puss", "shrek", "fiona", "donkey"])},
+    {t: "tf", label: "Donkey ≠ cat", say: "Look! This is a cat! Yes or no?", model: "No! It's a donkey!", ans: false, v: "img:esek_2_zipliyor"},
+    {t: "reveal", label: "Who is it? (Puss)", say: "Who is it? Let's open the boxes!", model: "It's Puss! Puss is a cat!", ans: "puss", v: "img:kedi_tombul", opts: pick(C, ["puss", "donkey", "shrek"])},
+    {t: "count", label: "Three onions", say: "Shrek loves onions! Where are three onions?", model: "One, two, three! Three onions!", ans: "3", opts: [["2", group(F.onion, 2)], ["3", group(F.onion, 3)], ["5", group(F.onion, 5)]]},
+  ]},
+  {id: "kitchen", name: "Swamp kitchen", color: "#4db6ac", icon: "img:yiyecek_pasta", intro: "Welcome to Shrek's kitchen! Let's learn food words!", qs: [
+    {t: "learn", label: "Yeni kelimeler 1", say: "Touch the food and say it with me!", model: "Pasta, salad, rice, cake! Well done!", ans: "4 kelimeyi tekrar etsin", opts: pick(F, ["pasta", "salad", "rice", "cake"])},
+    {t: "learn", label: "Yeni kelimeler 2", say: "More food! Touch and say it with me!", model: "Soup, water, ice cream! Super!", ans: "3 kelimeyi tekrar etsin", opts: pick(F, ["soup", "water", "icecream"])},
+    {t: "tap", label: "Where's the rice?", say: "Where's the rice?", model: "Yes! Rice!", ans: "rice", opts: pick(F, ["cake", "rice", "pasta", "salad"])},
+    {t: "tap", label: "Where's the soup?", say: "Where's the soup?", model: "Yes! Soup!", ans: "soup", opts: pick(F, ["water", "salad", "soup", "rice"])},
+    {t: "tap", label: "Where's the water?", say: "Touch the water!", model: "Yes! Water!", ans: "water", opts: pick(F, ["icecream", "water", "cake", "soup"])},
+    {t: "speak", label: "What's this? (ice cream)", say: "What's this?", model: "It's ice cream!", ans: "It's ice cream!", v: F.icecream},
+    {t: "speak", label: "What's this? (pasta)", say: "And this? What's this?", model: "It's pasta!", ans: "It's pasta!", v: F.pasta},
+  ]},
+  {id: "picnic", name: "Picnic", color: "#f06292", icon: "img:shrek_06_spagetti_yiyor", intro: "Picnic time! Everybody is hungry!", qs: [
+    {t: "feed", label: "Shrek likes pasta", say: "Shrek is hungry! Shrek likes pasta. Give him pasta!", model: "Yummy! Shrek likes pasta!", ans: "pasta", who: "shrek"},
+    {t: "feed", label: "Donkey likes cake", say: "Donkey likes cake! Give Donkey cake!", model: "Yummy! Donkey likes cake!", ans: "cake", who: "donkey"},
+    {t: "feed", label: "Puss likes ice cream", say: "Puss likes ice cream! Give Puss ice cream!", model: "Yummy! Puss likes ice cream!", ans: "icecream", who: "puss"},
+    {t: "feed", label: "Shrek likes soup", say: "Shrek likes soup! Give him soup!", model: "Yummy! Shrek likes soup!", ans: "soup", who: "shrek"},
+    {t: "tf", label: "Shrek ≠ salad", say: "Look! Shrek likes salad! Yes or no?", model: "No! Shrek likes pasta!", ans: false, v: "img:shrek_06_spagetti_yiyor"},
+    {t: "speak", label: "Do you like ice cream?", say: "{name}, do you like ice cream?", model: "Yes, I like ice cream!", ans: "Yes, I like ice cream! / No, I don't.", v: F.icecream},
+    {t: "speak", label: "What do you like?", say: "What do you like, {name}?", model: "I like cake!", ans: "I like (cake)!", v: "img:shrek_09_dusunuyor"},
+  ]},
+  {id: "games", name: "Game time", color: "#7986cb", icon: "🎲", intro: "Game time! Let's play!", qs: [
+    {t: "missing", label: "What's missing?", say: "Look at the food. Close your eyes!", say2: "Open your eyes! What's missing?", model: "Yes! Well done!", pool: 4},
+    {t: "odd", label: "Silly one (socks)", say: "Which one is silly? We can't eat it!", model: "Socks! Yuck! We can't eat socks!", ans: "socks", opts: pick(F, ["soup", "socks", "icecream", "cake"])},
+    {t: "memory", label: "Memory", say: "Find the pairs! Say the food!", model: "You found them all!", pool: 4},
+    {t: "reveal", label: "Who is it? (Shrek eating)", say: "Who is it? What is he eating?", model: "It's Shrek! Shrek likes pasta!", ans: "shrek", v: "img:shrek_06_spagetti_yiyor", opts: pick(C, ["fiona", "shrek", "donkey"])},
+  ]},
+  {id: "match", name: "Big match", color: "#ffd400", icon: "⚽", match: true, intro: "Let's play football! Answer the questions and score goals!", qs: [
+    {t: "tap", label: "Match: Where's Puss?", say: "Where's Puss?", model: "Yes! Puss!", ans: "puss", opts: pick(C, ["donkey", "puss", "fiona", "shrek"])},
+    {t: "speak", label: "Match: rice", say: "What's this?", model: "It's rice!", ans: "Rice!", v: F.rice},
+    {t: "feel", label: "Match: angry", say: "How does Shrek feel?", model: "Angry!", ans: "angry", v: "img:shrek_03_kizgin", opts: pick(FACE, ["happy", "angry", "sad"])},
+    {t: "tf", label: "Match: salad ≠ cake", say: "This is cake! Yes or no?", model: "No! It's salad!", ans: false, v: F.salad},
+    {t: "count", label: "Match: two onions", say: "Where are two onions?", model: "One, two! Two onions!", ans: "2", opts: [["4", group(F.onion, 4)], ["2", group(F.onion, 2)], ["1", group(F.onion, 1)]]},
+    {t: "tap", label: "Match: water", say: "Where's the water?", model: "Yes! Water!", ans: "water", opts: pick(F, ["soup", "icecream", "water", "salad"])},
+    {t: "speak", label: "Match: Donkey", say: "Who's this?", model: "It's Donkey!", ans: "Donkey!", v: "img:esek_1_gulumsuyor"},
+    {t: "speak", label: "Match: I like pasta", say: "Last one! Do you like pasta?", model: "Yes, I like pasta!", ans: "Yes, I like pasta!", v: F.pasta},
+  ]},
+];
+const EATERS = {
+  shrek: {hungry: "shrek_05_uzgun_ac", like: "shrek_04_cok_mutlu", pasta: "shrek_06_spagetti_yiyor", no: "shrek_11_iyy"},
+  donkey: {hungry: "esek_4_uzgun", like: "esek_2_zipliyor", no: "esek_4_uzgun"},
+  puss: {hungry: "kedi_kollari_kavusuk", like: "kedi_tombul", no: "kedi_kollari_kavusuk"},
+};
+
+/* ---------- narrator voice: pre-recorded clips (same child voice as Bobo) ---------- */
+const AUDIO = window.SHREK_AUDIO || {};
+let actx, token = 0, src = null;
+function ctx() { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; }
+document.addEventListener("pointerdown", () => { try { ctx(); } catch (e) {} }, true);
+const bufs = {};
+async function buf(k) {
+  if (!bufs[k]) {
+    const bin = atob(AUDIO[k]), b = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+    const ab = await new Promise((ok, no) => ctx().decodeAudioData(b.buffer, ok, no));
+    const d = ab.getChannelData(0), sr = ab.sampleRate; let s = 0, e = d.length - 1;
+    while (s < e && Math.abs(d[s]) < .012) s++;
+    while (e > s && Math.abs(d[e]) < .012) e--;
+    bufs[k] = {ab, off: Math.max(0, s / sr - .03), dur: (e - s) / sr + .09};
+  }
+  return bufs[k];
+}
+function clipKeys(text) {   // must match tools/build_shrek_audio.py
+  const parts = text.split("{name}"), out = [];
+  parts.forEach((seg, i) => { if (/[A-Za-z]/.test(seg)) out.push("en:" + seg.trim()); if (i < parts.length - 1) out.push("nm:" + NAME); });
+  return out;
+}
+async function playKey(k, my) {
+  if (my !== token || !AUDIO[k]) return;
+  const x = await buf(k);
+  if (my !== token) return;
+  const n = ctx().createBufferSource(); n.buffer = x.ab; n.connect(ctx().destination); src = n;
+  await new Promise(r => { n.onended = r; n.start(0, x.off, x.dur); setTimeout(r, (x.dur + .6) * 1000); });
+}
+function stopVoice() { token++; if (src) { try { src.stop(); } catch (e) {} src = null; } $("bubble").classList.remove("talk"); }
+let lastSaid = [];
+async function say(lines, show = true) {
+  stopVoice(); const my = token;
+  lines = [].concat(lines).filter(Boolean);
+  if (show) { lastSaid = lines; }
+  for (const line of lines) {
+    if (my !== token) return;
+    if (show) { $("bubble").textContent = line.replace(/\{name\}/g, NAME); $("bubble").classList.add("talk"); }
+    for (const k of clipKeys(line)) await playKey(k, my);
+    await new Promise(r => setTimeout(r, 250));
+  }
+  if (my === token) $("bubble").classList.remove("talk");
+}
+
+/* ---------- state ---------- */
+const KEY = "shrekGame_v2";
+let S = {results: {}, done: [], hard: true};
+try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+let cur = null, match = {emir: 0, shrek: 0};
+const $ = id => document.getElementById(id);
+const q = () => STATIONS[cur.si].qs[cur.qi];
+const rkey = () => `${STATIONS[cur.si].id}:${cur.qi}`;
+const shuffle = a => a.map(x => [Math.random(), x]).sort((p, r) => p[0] - r[0]).map(p => p[1]);
+const rand = a => a[Math.floor(Math.random() * a.length)];
+
+/* ---------- sound effects ---------- */
+function tone(f, t0, d, type = "sine", v = .12) {
+  try {
+    const c = ctx(), o = c.createOscillator(), g = c.createGain(), t = c.currentTime + t0;
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d);
+  } catch (e) {}
+}
+const sfx = {
+  pop: () => tone(620, 0, .1, "square", .04),
+  ding: n => tone(440 * Math.pow(2, (n || 0) / 6), 0, .3),
+  yes: () => { tone(784, 0, .15); tone(1175, .12, .3); },
+  oops: () => { tone(330, 0, .18, "triangle"); tone(262, .15, .3, "triangle"); },
+  yuck: () => { tone(220, 0, .25, "sawtooth", .05); tone(160, .18, .35, "sawtooth", .05); },
+  whoosh: () => { for (let i = 0; i < 6; i++) tone(300 + i * 90, i * .04, .08, "triangle", .05); },
+  cheer: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * .1, .35, "triangle")),
+  whistle: () => { tone(2200, 0, .25, "sine", .07); tone(2200, .32, .6, "sine", .07); },
+};
+function confetti(n = 60) {
+  const cs = ["#ffd400", "#0b1f4d", "#43a047", "#e53935", "#1e88e5", "#fb8c00"];
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement("div");
+    d.className = "confetti";
+    d.style.left = Math.random() * 100 + "vw"; d.style.background = cs[i % cs.length];
+    d.style.animationDuration = 1.6 + Math.random() * 1.6 + "s"; d.style.animationDelay = Math.random() * .4 + "s";
+    document.body.appendChild(d); setTimeout(() => d.remove(), 3800);
+  }
+}
+
+/* ---------- map ---------- */
+function showMap(greet) {
+  cur = null; stopVoice(); closeOverlays();
+  $("q").classList.add("hidden"); $("map").classList.remove("hidden");
+  $("nextBtn").classList.add("hidden"); $("replay").classList.add("hidden"); $("score").classList.add("hidden");
+  $("stage").classList.remove("field"); $("bubble").textContent = "";
+  const next = STATIONS.findIndex(s => !S.done.includes(s.id));
+  $("map").innerHTML = `<div class="stations">${STATIONS.map((s, i) => `
+    <div class="st" style="--c:${s.color};animation-delay:${i * .06}s" data-i="${i}">
+      <span class="num">${i + 1}</span>
+      <div class="pic">${V(s.icon)}</div>
+      <span class="nm">${s.name}</span>
+      ${S.done.includes(s.id) ? '<span class="emo star">⭐</span>' : ""}
+    </div>`).join("")}</div>
+    <button class="bigbtn" id="spin">🎡 Spin!</button>`;
+  document.querySelectorAll(".st").forEach(el => el.onclick = () => { sfx.pop(); openStation(+el.dataset.i); });
+  $("spin").onclick = openWheel;
+  if (greet) say(PH.pickIsland);
+  bar(`<span class="info"><span class="lbl">Harita</span><br>Sıradaki önerilen: <b>${next >= 0 ? next + 1 + " – " + STATIONS[next].name : "hepsi bitti 🎉"}</b>. 🎡 ile çark seçtirebilirsiniz: Emir "Stop!" desin, siz tıklayın.</span>`,
+    [tb(S.hard ? "4 seçenek" : "2 seçenek", () => { S.hard = !S.hard; save(); showMap(); }), tb("📋 Notlar", showNotes)]);
+}
+
+let wheelAngle = 0;
+function openWheel() {
+  sfx.pop(); say(PH.spin);
+  const n = STATIONS.length;
+  const grad = STATIONS.map((s, i) => `${s.color} ${i * 360 / n}deg ${(i + 1) * 360 / n}deg`).join(",");
+  const o = document.createElement("div");
+  o.className = "overlay"; o.style.background = "rgba(0,0,0,.35)";
+  o.innerHTML = `<div class="wheelwrap"><span class="pointer emo">🔻</span>
+    <div class="wheel" id="wheel" style="background:conic-gradient(${grad});transform:rotate(${wheelAngle}deg)">
+    ${STATIONS.map((s, i) => { const a = (i + .5) * 360 / n; return `<div class="seg" style="transform:rotate(${a}deg) translateY(-21vh) rotate(-${a}deg)">${s.icon.startsWith("img:") ? V(s.icon) : `<span class="emo">${s.icon}</span>`}</div>`; }).join("")}
+    </div></div><button class="bigbtn" id="stopbtn">🛑 Stop!</button>`;
+  $("stage").appendChild(o);
+  $("stopbtn").onclick = () => {
+    $("stopbtn").disabled = true;
+    const land = Math.floor(Math.random() * n), target = 360 - (land + .5) * 360 / n;
+    wheelAngle += 1440 + ((target - wheelAngle % 360) + 360) % 360;
+    $("wheel").style.transform = `rotate(${wheelAngle}deg)`;
+    for (let i = 0; i < 14; i++) setTimeout(() => sfx.pop(), i * 200 * (1 + i / 10));
+    setTimeout(() => { sfx.cheer(); setTimeout(() => { o.remove(); openStation(land); }, 900); }, 3300);
+  };
+}
+
+/* ---------- stations & questions ---------- */
+function openStation(si) {
+  cur = {si, qi: 0};
+  const s = STATIONS[si];
+  if (s.match) { match = {emir: 0, shrek: 0}; $("ptE").textContent = 0; $("ptS").textContent = 0; }
+  renderQ(true);
+}
+function closeOverlays() { document.querySelectorAll(".overlay,.curtain,.big").forEach(o => o.remove()); }
+
+function renderQ(withIntro) {
+  closeOverlays();
+  Object.assign(cur, {tries: 0, solved: false, hinted: false, resolved: false});
+  const s = STATIONS[cur.si], Q = q();
+  $("map").classList.add("hidden"); $("nextBtn").classList.add("hidden");
+  $("replay").classList.remove("hidden"); $("score").classList.toggle("hidden", !s.match);
+  $("stage").classList.toggle("field", !!s.match);
+  let opts = Q.opts ? [...Q.opts] : [];
+  if (Q.pool) { opts = pick(F, someFoods(Q.pool)); Q.opts = opts; }   // a fresh mix of food words every time
+  if (!S.hard && ["tap", "feel", "count", "odd", "reveal"].includes(Q.t) && opts.length > 2)
+    opts = shuffle([opts.find(o => o[0] === Q.ans), ...shuffle(opts.filter(o => o[0] !== Q.ans)).slice(0, 1)]);
+  const optHtml = list => `<div class="row">${list.map(([id, v], i) => `<div class="opt" data-id="${id}" style="animation-delay:${i * .07}s">${v.startsWith("grp|") ? groupHtml(v) : V(v)}</div>`).join("")}</div>`;
+  const box = $("q"); box.classList.remove("hidden");
+  box.innerHTML = {
+    tap: () => optHtml(shuffle(opts)),
+    odd: () => optHtml(shuffle(opts)),
+    count: () => optHtml(shuffle(opts)),
+    feel: () => `<div class="vis">${V(Q.v)}</div>${optHtml(shuffle(opts))}`,
+    speak: () => `<div class="vis">${V(Q.v)}</div><span class="cue emo mic">🎤</span>`,
+    tf: () => `<div class="vis">${V(Q.v)}</div><div class="thumbs"><button class="thumb up emo" data-tf="1">👍</button><button class="thumb down emo" data-tf="0">👎</button></div>`,
+    learn: () => optHtml(opts),
+    feed: () => `<div class="row" style="align-items:center;gap:4vw"><div class="vis"><img id="eater" src="${IMG(EATERS[Q.who].hungry)}" alt=""></div>${optHtml(pick(F, someFoods(4, Q.ans)))}</div>`,
+    missing: () => `<div class="row" id="mrow">${opts.map(([id, v]) => `<div class="opt" data-id="${id}">${V(v)}</div>`).join("")}</div><button class="bigbtn" id="closeEyes">🙈 Close your eyes!</button>`,
+    memory: () => `<div class="mem">${shuffle([...opts, ...opts]).map(([id, v]) => `<div class="card" data-id="${id}"><div class="in"><div class="f">?</div><div class="b">${V(v)}</div></div></div>`).join("")}</div>`,
+    reveal: () => `<div class="reveal">${V(Q.v)}<div class="tiles">${Array.from({length: 9}, (_, i) => `<div class="tile">${i + 1}</div>`).join("")}</div></div>${optHtml(shuffle(opts))}`,
+  }[Q.t]();
+  wire(Q);
+  const dots = s.qs.map((_, i) => i < cur.qi ? "●" : i === cur.qi ? "◉" : "○").join(" ");
+  const ans = Q.t === "tf" ? (Q.ans ? "👍 Yes" : "👎 No → " + Q.model) : Q.ans;
+  bar(`<span class="info"><span class="lbl">${s.name} · ${dots} · ${typeTr(Q.t)}${s.match ? " · ⚽ doğru/yardımla = Emir gol, yanlış = Shrek tutar" : ""}</span><br>Soru: <b>"${Q.say.replace(/\{name\}/g, NAME)}"</b>${ans ? ` · Cevap: <b>${ans}</b>` : ""}</span>`,
+    [tb("✓ Doğru (1)", () => teacherMark("ok"), "ok"), tb("~ Yardımla (2)", () => teacherMark("help"), "help"), tb("✗ Bilmedi (3)", () => teacherMark("no"), "no"),
+     tb("💡 İpucu", hint), tb("⏭ Geç", nextQ), tb("🗺️", () => showMap())]);
+  say(withIntro && cur.qi === 0 ? [s.intro, Q.say] : Q.say);
+}
+const typeTr = t => ({tap: "Dinle & dokun", feel: "Duygu", count: "Sayma", speak: "Konuşma 🎤", tf: "Doğru mu? 👍👎", learn: "Yeni kelimeler",
+  feed: "Besle", missing: "Hangisi eksik?", odd: "Hangisi farklı?", memory: "Hafıza", reveal: "Kutuları aç"})[t];
+const groupHtml = v => { const [, e, n] = v.split("|"); return `<div class="group">${Array.from({length: +n}, () => V(e)).join("")}</div>`; };
+
+function wire(Q) {
+  const opts = [...document.querySelectorAll("#q .opt")];
+  if (["tap", "odd", "count", "feel", "reveal"].includes(Q.t)) opts.forEach(o => o.onclick = () => choose(o, o.dataset.id === Q.ans));
+  if (Q.t === "tf") document.querySelectorAll(".thumb").forEach(b => b.onclick = () => choose(b, (b.dataset.tf === "1") === Q.ans));
+  if (Q.t === "reveal") document.querySelectorAll(".tile").forEach(t => t.onclick = () => { t.classList.add("off"); sfx.pop(); });
+  if (Q.t === "learn") {
+    const seen = new Set();
+    opts.forEach(o => o.onclick = () => {
+      o.style.transform = "scale(1.15)"; setTimeout(() => o.style.transform = "", 600);
+      o.classList.add("right"); seen.add(o.dataset.id);
+      say([PH.words[o.dataset.id], PH.sayIt]);
+      if (seen.size === opts.length) setTimeout(() => correct(), 2600);
+    });
+  }
+  if (Q.t === "feed") opts.forEach(o => o.onclick = () => feed(o, Q));
+  if (Q.t === "missing") $("closeEyes").onclick = () => hideOne(Q);
+  if (Q.t === "memory") memory();
+}
+
+function choose(el, ok) {
+  if (cur.solved || cur.resolved) return;
+  cur.tries++;
+  if (ok) { el.classList.add("right"); correct(); return; }
+  el.classList.add("wrong"); sfx.oops();
+  if (STATIONS[cur.si].match) { resolveMatch(false); return; }   // in the match a wrong answer is a goal for Shrek
+  if (cur.tries >= 2) { showAnswer(); say([PH.look, q().model]); } else say([PH.oops, q().say]);
+}
+function showAnswer() {
+  const Q = q(); cur.hinted = true;
+  if (Q.t === "tf") document.querySelector(`.thumb[data-tf="${Q.ans ? 1 : 0}"]`)?.classList.add("show");
+  else document.querySelector(`#q .opt[data-id="${Q.ans}"]`)?.classList.add("show");
+}
+function hint() {
+  if (q().t === "reveal") document.querySelectorAll(".tile:not(.off)").forEach((t, i) => i < 3 && t.classList.add("off"));
+  showAnswer();
+  if (q().t === "speak") say([PH.sayIt, q().model]);
+}
+function record(m) { if (!S.results[rkey()]) { S.results[rkey()] = m; save(); } }
+function teacherMark(m) {
+  if (m === "no") {
+    record("no");
+    if (STATIONS[cur.si].match) { resolveMatch(false); return; }
+    showAnswer(); sfx.oops(); say([PH.look, PH.sayIt, q().model]);
+    $("nextBtn").classList.remove("hidden");
+    return;
+  }
+  if (cur.solved) { S.results[rkey()] = m; save(); return; }
+  cur.hinted = cur.hinted || m === "help";
+  correct();
+}
+function correct() {
+  if (cur.solved) return;
+  cur.solved = true;
+  record(cur.tries <= 1 && !cur.hinted ? "ok" : "help");
+  sfx.yes();
+  if (STATIONS[cur.si].match) { resolveMatch(true); return; }
+  confetti(30);
+  say([rand(PH.praise), q().model]);
+  $("nextBtn").classList.remove("hidden");
+}
+
+/* ---------- the match: Emir takes a penalty after every answer, Shrek keeps goal ----------
+   right answer (alone or with help) -> Shrek dives the wrong way, goal for Emir
+   wrong answer -> Shrek catches the ball, a point for Shrek */
+function resolveMatch(emirScores) {
+  if (cur.resolved) return;
+  cur.resolved = true;
+  setTimeout(() => {
+    const o = document.createElement("div");
+    o.className = "overlay pen";
+    o.innerHTML = `<div class="goal"><img class="keeper" id="pkeeper" src="${IMG("shrek_04_cok_mutlu")}" alt=""></div>
+      <img class="shooter" style="left:3vw" src="${IMG("esek_2_zipliyor")}" alt="">
+      <div class="pball emo" id="pball">⚽</div>`;
+    $("stage").appendChild(o);
+    const spots = [[-18, -34], [18, -34], [-12, -24], [12, -24]];
+    const [x, y] = rand(spots);
+    setTimeout(() => {
+      sfx.whoosh();
+      if (emirScores) {
+        $("pball").style.transform = `translate(${x}vw, ${y}vh) scale(.55)`;
+        $("pkeeper").style.transform = `translateX(calc(-50% + ${-Math.sign(x) * 15}vw)) rotate(${-Math.sign(x) * 25}deg)`;
+      } else {   // Shrek dives to the ball and the ball stops in his hands
+        $("pkeeper").style.transform = `translateX(calc(-50% + ${x * .7}vw)) rotate(${Math.sign(x) * 15}deg)`;
+        $("pball").style.transform = `translate(${x * .7}vw, -30vh) scale(.5)`;
+      }
+    }, 400);
+    setTimeout(() => {
+      const who = emirScores ? "emir" : "shrek";
+      match[who]++;
+      const p = $(emirScores ? "ptE" : "ptS"); p.textContent = match[who]; p.classList.remove("bump"); void p.offsetWidth; p.classList.add("bump");
+      const g = document.createElement("div"); g.className = "goaltxt";
+      if (emirScores) {
+        g.textContent = "GOAL!";
+        $("pkeeper").src = IMG("shrek_10_cani_sikkin");
+        sfx.cheer(); confetti(70); say([PH.goalEmir, q().model]);
+      } else {
+        g.innerHTML = `<span class="emo">🧤</span>`;
+        sfx.yuck(); say([PH.saveShrek, PH.look, q().model]);
+      }
+      o.appendChild(g);
+      $("nextBtn").classList.remove("hidden");
+    }, 1000);
+  }, 500);
+}
+
+function nextQ() {
+  stopVoice();
+  const s = STATIONS[cur.si];
+  if (cur.qi < s.qs.length - 1) { cur.qi++; renderQ(false); return; }
+  if (!S.done.includes(s.id)) { S.done.push(s.id); save(); }
+  closeOverlays(); $("nextBtn").classList.add("hidden");
+  const o = document.createElement("div");
+  o.className = "big";
+  if (s.match) {
+    sfx.whistle();
+    const res = match.emir > match.shrek ? "win" : match.emir < match.shrek ? "lose" : "draw";
+    o.innerHTML = `<span class="emo">${res === "win" ? "🏆" : res === "draw" ? "🤝" : "⚽"}</span>`;
+    setTimeout(() => { if (res !== "lose") confetti(140); sfx.cheer(); say(PH[res]); }, 900);
+  } else {
+    o.innerHTML = `<span class="emo">⭐</span>`;
+    confetti(80); sfx.cheer(); say(PH.star);
+  }
+  $("stage").appendChild(o);
+  o.onclick = () => showMap(true);
+  $("nextBtn").classList.remove("hidden");
+}
+
+/* ---------- special question types ---------- */
+function feed(el, Q) {
+  if (cur.solved || cur.resolved) return;
+  const ok = el.dataset.id === Q.ans, E = EATERS[Q.who], eater = $("eater");
+  const from = el.getBoundingClientRect(), to = eater.getBoundingClientRect();
+  const fly = document.createElement("div");
+  fly.className = "flyer"; fly.innerHTML = V(F[el.dataset.id]);
+  fly.style.cssText = `left:${from.left}px;top:${from.top}px;height:${from.height}px`;
+  document.body.appendChild(fly); sfx.whoosh();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fly.style.transform = `translate(${to.left + to.width * .3 - from.left}px,${to.top + to.height * .2 - from.top}px) scale(.5)`;
+    fly.style.opacity = "0";
+  }));
+  setTimeout(() => {
+    fly.remove();
+    eater.src = IMG(ok ? (Q.ans === "pasta" && E.pasta) || E.like : E.no);
+    const r = document.createElement("div");
+    r.className = "react emo"; r.textContent = ok ? "❤️" : "🤢";
+    r.style.left = to.left + to.width * .6 + "px"; r.style.top = to.top + "px";
+    document.body.appendChild(r); setTimeout(() => r.remove(), 1700);
+    if (ok) { el.classList.add("right"); correct(); }
+    else {
+      el.classList.add("wrong"); sfx.yuck(); cur.tries++;
+      if (cur.tries >= 2) { showAnswer(); say([PH.look, Q.say]); } else say([PH.yuck, Q.say]);
+      setTimeout(() => { if (!cur.solved) eater.src = IMG(E.hungry); }, 1500);
+    }
+  }, 820);
+}
+
+function hideOne(Q) {
+  const c = document.createElement("div");
+  c.className = "curtain"; c.innerHTML = `<span class="emo">🙈</span>`;
+  $("stage").appendChild(c); sfx.whoosh();
+  const gone = rand(Q.opts)[0];
+  Q.ans = gone;
+  setTimeout(() => {
+    c.remove();
+    $("mrow").innerHTML = Q.opts.map(([id, v]) => id === gone ? `<div class="opt blank"><span class="emo" style="font-size:12vh">❓</span></div>` : `<div class="opt" style="cursor:default">${V(v)}</div>`).join("");
+    $("closeEyes").outerHTML = `<div class="row" id="mchoices">${shuffle(Q.opts).map(([id, v]) => `<div class="opt" data-id="${id}" style="height:18vh">${V(v)}</div>`).join("")}</div>`;
+    document.querySelectorAll("#mchoices .opt").forEach(o => o.onclick = () => choose(o, o.dataset.id === gone));
+    const i = document.querySelector("#bar .info"); if (i) i.innerHTML += ` · Cevap: <b>${gone}</b>`;
+    say(Q.say2);
+  }, 2400);
+}
+
+function memory() {
+  let open = [], matched = 0;
+  const cards = [...document.querySelectorAll(".card")];
+  cards.forEach(c => c.onclick = () => {
+    if (c.classList.contains("flip") || open.length === 2) return;
+    c.classList.add("flip"); sfx.pop(); open.push(c);
+    if (open.length === 2) {
+      const [a, b] = open;
+      if (a.dataset.id === b.dataset.id) {
+        setTimeout(() => {
+          a.classList.add("done"); b.classList.add("done"); sfx.ding(matched * 3); say(PH.words[a.dataset.id]); open = []; matched++;
+          if (matched === cards.length / 2) setTimeout(correct, 900);
+        }, 450);
+      } else setTimeout(() => { a.classList.remove("flip"); b.classList.remove("flip"); open = []; }, 1100);
+    }
+  });
+}
+
+/* ---------- teacher bar & notes ---------- */
+function tb(label, fn, cls) { const b = document.createElement("button"); b.className = "tb" + (cls ? " " + cls : ""); b.textContent = label; b.onclick = fn; return b; }
+function bar(info, buttons) {
+  const b = $("bar"); b.innerHTML = info;
+  [...buttons, tb("⛶", () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}))].forEach(x => b.appendChild(x));
+}
+const MARK = {ok: "✅ Kendisi", help: "🟡 Yardımla", no: "❌ Bilmedi"};
+function showNotes() {
+  const rows = STATIONS.flatMap(s => s.qs.map((Q, i) => { const m = S.results[`${s.id}:${i}`]; return m ? `<tr><td>${s.name}</td><td>${Q.label}</td><td>${MARK[m]}</td></tr>` : ""; })).join("");
+  const weak = STATIONS.flatMap(s => s.qs.map((Q, i) => ["help", "no"].includes(S.results[`${s.id}:${i}`]) ? `• ${s.name}: ${Q.label}` : null)).filter(Boolean);
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `<div class="card2"><h3 style="margin-top:0">📋 Ders notları (sadece öğretmen)</h3>
+    <table>${rows || "<tr><td>Henüz cevap yok.</td></tr>"}</table>
+    <b style="display:block;margin-top:12px">Tekrar edilecekler</b><textarea>${weak.join("\n")}</textarea>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="tb no" id="nReset">Sıfırla (notlar ve yıldızlar)</button><span style="flex:1"></span><button class="tb on" id="nClose">Kapat</button></div></div>`;
+  document.body.appendChild(m);
+  $("nClose").onclick = () => m.remove();
+  $("nReset").onclick = () => { if (!confirm("Her şey sıfırlansın mı?")) return; S.results = {}; S.done = []; save(); m.remove(); showMap(); };
+}
+
+$("replay").onclick = () => say(lastSaid);
+$("nextBtn").onclick = () => { const big = document.querySelector(".big"); big ? showMap(true) : nextQ(); };
+document.addEventListener("keydown", e => {
+  if (document.querySelector(".modal")) return;
+  const k = e.key.toLowerCase();
+  if (!cur) return;
+  if (k === "1") teacherMark("ok"); else if (k === "2") teacherMark("help"); else if (k === "3") teacherMark("no");
+  else if (k === "h") hint(); else if (k === " ") { e.preventDefault(); say(lastSaid); }
+  else if (k === "arrowright" || k === "enter") $("nextBtn").click(); else if (k === "m") showMap();
+});
+
+showMap();
+if (!window.SHREK_AUDIO) $("bubble").textContent = "⚠️ ders_sesleri.js bulunamadı – ses kapalı";
+</script>
+</body>
+</html>
