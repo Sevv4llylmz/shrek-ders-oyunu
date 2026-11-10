@@ -183,8 +183,8 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
   #score{top:auto;bottom:12px;right:auto;left:12px;padding:3px 10px;gap:6px}
   #score .team{font-size:13px}
   #score .pts{font-size:28px;min-width:22px}
-  /* teacher buttons: big 3x2 grid, lifted above the floating browser toolbar on phones */
-  #bar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px 8px calc(78px + env(safe-area-inset-bottom));font-size:12px}
+  /* teacher buttons: big 3x2 grid; the page already ends above the browser toolbar, so no extra space below */
+  #bar{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px 8px calc(8px + env(safe-area-inset-bottom));font-size:12px}
   #bar .info{grid-column:1/-1;min-width:0}
   .tb{padding:11px 4px;font-size:14px;border-radius:10px}
   .tb.fsbtn{display:none}
