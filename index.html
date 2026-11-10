@@ -16,6 +16,10 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
 #stage::before{content:"";position:absolute;inset:-12px;background:url("ders_gorselleri/arka_plan_bataklik.webp") center/cover no-repeat;filter:blur(2px) brightness(1.08) saturate(1.1)}
 #stage.field{background:repeating-linear-gradient(90deg,#4caf50 0 8%,#43a047 8% 16%)}
 #stage.field::before{display:none}
+/* phones and tablets held upright get the tall version of the swamp picture */
+@media (orientation:portrait) and (max-width:900px){
+  #stage::before{background-image:url("ders_gorselleri/arka_plan_bataklik_dikey.webp");background-position:center 40%;filter:blur(1.5px) brightness(1.2) saturate(1.1)}
+}
 .emo{font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;line-height:1;display:inline-block}
 .hidden{display:none!important}
 
@@ -62,7 +66,7 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
 .group{display:flex;flex-wrap:wrap;gap:4px;max-width:14vw;justify-content:center}
 .group img{height:7vh}
 .vis{height:42vh;display:flex;align-items:flex-end;justify-content:center}
-.vis img{height:100%;object-fit:contain;filter:drop-shadow(0 10px 8px rgba(0,0,0,.25))}
+.vis img{height:100%;max-width:92vw;object-fit:contain;filter:drop-shadow(0 10px 8px rgba(0,0,0,.25))}
 .vis .emo{font-size:28vh}
 .cue{font-size:60px}
 .mic{animation:pulse 1s infinite}
@@ -123,6 +127,74 @@ body{font-family:"Comic Sans MS","Trebuchet MS",system-ui,sans-serif;overflow:hi
 .modal td{padding:4px 6px;border-bottom:1px solid #eee}
 .modal textarea{width:100%;min-height:150px;font:14px "Segoe UI",system-ui,sans-serif;margin-top:8px}
 .confetti{position:fixed;top:-20px;width:14px;height:20px;z-index:80;pointer-events:none;animation:fall linear forwards}
+
+.feedrow{align-items:center;gap:4vw}
+
+/* ---------- tablets (portrait) and phones ---------- */
+@media (max-width:900px){
+  #bubble{left:84px;right:12px;transform:none;max-width:none;font-size:22px;padding:8px 14px;justify-content:center}
+  #replay{width:60px;height:60px;font-size:28px}
+  #nextBtn{width:76px;height:76px;font-size:36px;right:12px;bottom:12px}
+  .stations{grid-template-columns:repeat(2,1fr);gap:4.5vh 5vw}
+  .st{width:40vw;max-width:320px;height:min(17vh,190px)}
+  .st .nm{font-size:16px;bottom:-14px}
+  .st .num{width:38px;height:38px;font-size:19px;top:-12px;left:-12px}
+  .st .star{font-size:40px}
+  .bigbtn{font-size:22px;padding:10px 26px}
+  #q{gap:2.2vh;padding-left:3vw;padding-right:3vw;justify-content:flex-start}
+  .row{gap:3vw}
+  .opt{min-width:0;width:42vw;height:19vh;border-radius:22px;padding:1vh}
+  .opt img{max-width:100%}
+  .opt .emo{font-size:10vh}
+  .vis{height:30vh}
+  .vis .emo{font-size:20vh}
+  .thumb{width:110px;height:110px;font-size:64px}
+  .reveal{height:32vh}
+  .tile{font-size:28px}
+  .mem{gap:1.5vh 2vw}
+  .card{width:21vw;height:14vh}
+  .card .f{font-size:44px}
+  .feedrow{flex-direction:column;gap:1.5vh}
+  .feedrow .vis{height:22vh}
+  .feedrow .row .opt{width:42vw;height:15vh}
+  .group img{height:5vh}
+  .goal{width:88vw;height:30vh;border-width:9px}
+  .keeper{height:24vh}
+  .shooter{height:20vh}
+  .pball{font-size:64px}
+  .goaltxt{font-size:72px;-webkit-text-stroke:4px #0b1f4d}
+  .wheelwrap{width:min(84vw,56vh);height:min(84vw,56vh)}
+  .wheel .seg img{height:9vh}
+  .big .emo{font-size:160px}
+  .curtain .emo{font-size:120px}
+  #score{top:auto;bottom:12px;right:auto;left:12px;padding:3px 10px;gap:6px}
+  #score .team{font-size:13px}
+  #score .pts{font-size:28px;min-width:22px}
+  #bar{gap:4px;padding:5px 6px;font-size:12px}
+  #bar .info{min-width:100%}
+  .tb{padding:6px 8px;font-size:12px}
+}
+/* phones in landscape: little height, so everything gets shorter */
+@media (max-height:520px){
+  #bubble{font-size:18px;padding:5px 12px;top:8px}
+  #replay{width:48px;height:48px;font-size:22px;top:8px}
+  #nextBtn{width:62px;height:62px;font-size:28px}
+  #map{padding:52px 0 6px;gap:2.5vh}
+  .stations{grid-template-columns:repeat(3,1fr);gap:4.5vh 3vw}
+  .st{width:22vw;height:19vh}
+  .st .nm{font-size:13px;bottom:-12px;padding:1px 10px}
+  .st .num{width:30px;height:30px;font-size:16px}
+  .st .star{font-size:30px}
+  .bigbtn{font-size:17px;padding:5px 18px}
+  .opt{width:auto;min-width:18vw;height:28vh}
+  .vis{height:30vh}
+  .feedrow{flex-direction:row}
+  .feedrow .row .opt{width:auto;height:24vh}
+  .card{width:12vw;height:22vh}
+  .reveal{height:38vh}
+  .thumb{width:90px;height:90px;font-size:50px}
+  #bar .info{min-width:200px}
+}
 
 @keyframes drift{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
 @keyframes popin{from{transform:scale(0);opacity:0}70%{transform:scale(1.12)}to{transform:scale(1);opacity:1}}
@@ -275,7 +347,7 @@ async function say(lines, show = true) {
   if (show) { lastSaid = lines; }
   for (const line of lines) {
     if (my !== token) return;
-    if (show) { $("bubble").textContent = line.replace(/\{name\}/g, NAME); $("bubble").classList.add("talk"); }
+    if (show) { $("bubble").textContent = line.replace(/\{name\}/g, NAME); $("bubble").classList.add("talk"); fitBubble(); }
     for (const k of clipKeys(line)) await playKey(k, my);
     await new Promise(r => setTimeout(r, 250));
   }
@@ -398,7 +470,7 @@ function renderQ(withIntro) {
     speak: () => `<div class="vis">${V(Q.v)}</div><span class="cue emo mic">🎤</span>`,
     tf: () => `<div class="vis">${V(Q.v)}</div><div class="thumbs"><button class="thumb up emo" data-tf="1">👍</button><button class="thumb down emo" data-tf="0">👎</button></div>`,
     learn: () => optHtml(opts),
-    feed: () => `<div class="row" style="align-items:center;gap:4vw"><div class="vis"><img id="eater" src="${IMG(EATERS[Q.who].hungry)}" alt=""></div>${optHtml(pick(F, someFoods(4, Q.ans)))}</div>`,
+    feed: () => `<div class="row feedrow"><div class="vis"><img id="eater" src="${IMG(EATERS[Q.who].hungry)}" alt=""></div>${optHtml(pick(F, someFoods(4, Q.ans)))}</div>`,
     missing: () => `<div class="row" id="mrow">${opts.map(([id, v]) => `<div class="opt" data-id="${id}">${V(v)}</div>`).join("")}</div><button class="bigbtn" id="closeEyes">🙈 Close your eyes!</button>`,
     memory: () => `<div class="mem">${shuffle([...opts, ...opts]).map(([id, v]) => `<div class="card" data-id="${id}"><div class="in"><div class="f">?</div><div class="b">${V(v)}</div></div></div>`).join("")}</div>`,
     reveal: () => `<div class="reveal">${V(Q.v)}<div class="tiles">${Array.from({length: 9}, (_, i) => `<div class="tile">${i + 1}</div>`).join("")}</div></div>${optHtml(shuffle(opts))}`,
@@ -636,6 +708,13 @@ document.addEventListener("keydown", e => {
   else if (k === "h") hint(); else if (k === " ") { e.preventDefault(); say(lastSaid); }
   else if (k === "arrowright" || k === "enter") $("nextBtn").click(); else if (k === "m") showMap();
 });
+
+/* the question area always starts below the speech bubble, so a long question never covers the activity */
+function fitBubble() {
+  const b = $("bubble"), q = $("q");
+  q.style.paddingTop = (b.textContent ? b.offsetTop + b.offsetHeight + 12 : 20) + "px";
+}
+window.addEventListener("resize", fitBubble);
 
 showMap();
 if (!window.SHREK_AUDIO) $("bubble").textContent = "⚠️ ders_sesleri.js bulunamadı – ses kapalı";
